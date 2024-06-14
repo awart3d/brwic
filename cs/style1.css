@@ -1,0 +1,12 @@
+/* style css 1 */
+
+.xx {
+    background: black;
+    width: 15px;
+    height: 15px;
+}
+
+.xx:hover {
+    background: orange;
+}
+
