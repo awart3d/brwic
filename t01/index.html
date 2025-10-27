@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebXR + Gravação de Vídeo</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+</head>
+<body style="margin : 0px; overflow: hidden;">
+    <a-scene embedded arjs>
+        <a-marker preset="hiro">
+            <!-- Seu objeto 3D de RA virá aqui -->
+            <a-box position="0 0.5 0" material="color: yellow;"></a-box>
+        </a-marker>
+        
+    </a-scene>
+
+<script>
+    // Seleciona o elemento <canvas> do A-Frame
+    const sceneEl = document.querySelector('a-scene');
+    const canvas = sceneEl.canvas;
+
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    // Botões para controlar a gravação
+    const startButton = document.createElement('button');
+    startButton.textContent = 'Iniciar Gravação';
+    startButton.style = "position: absolute; bottom: 20px; left: 20px;";
+    document.body.appendChild(startButton);
+
+    const stopButton = document.createElement('button');
+    stopButton.textContent = 'Parar Gravação';
+    stopButton.disabled = true;
+    stopButton.style = "position: absolute; bottom: 20px; left: 150px;";
+    document.body.appendChild(stopButton);
+
+    startButton.addEventListener('click', async () => {
+        const stream = canvas.captureStream(30); // Captura o canvas em um fluxo
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        recordedChunks = [];
+
+        mediaRecorder.ondataavailable = event => {
+            if (event.data.size > 0) {
+                recordedChunks.push(event.data);
+            }
+        };
+
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'video-ar.webm';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+
+        mediaRecorder.start();
+        startButton.disabled = true;
+        stopButton.disabled = false;
+        console.log("Gravação iniciada...");
+    });
+
+    stopButton.addEventListener('click', () => {
+        mediaRecorder.stop();
+        startButton.disabled = false;
+        stopButton.disabled = true;
+        console.log("Gravação parada. Download será iniciado...");
+    });
+</script>
+
+
+</body>
+</html>
+
